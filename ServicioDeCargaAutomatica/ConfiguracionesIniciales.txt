@@ -1,0 +1,8 @@
+﻿//Aquí se denotaran el intervalo de lectura de los relojes checadores, así como paramétros diversos
+//Intervalo de lectura en segundos
+15000
+//Intentos de conexión antes de recharla
+4
+//Ips de los relojes checadores, uno por línea
+192.168.0.100
+192.168.0.241

@@ -1,7 +1,7 @@
 ﻿Imports System.ServiceProcess
 
 <Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
-Partial Class Service1
+Partial Class CargaDiaria
     Inherits System.ServiceProcess.ServiceBase
 
     'UserService reemplaza a Dispose para limpiar la lista de componentes.
@@ -28,7 +28,7 @@ Partial Class Service1
         '
         '   ServicesToRun = New System.ServiceProcess.ServiceBase () {New Service1, New MySecondUserService}
         '
-        ServicesToRun = New System.ServiceProcess.ServiceBase() {New Service1}
+        ServicesToRun = New System.ServiceProcess.ServiceBase() {New CargaDiaria}
 
         System.ServiceProcess.ServiceBase.Run(ServicesToRun)
     End Sub
@@ -39,10 +39,13 @@ Partial Class Service1
     ' NOTA: el Diseñador de componentes requiere el siguiente procedimiento
     ' Se puede modificar usando el Diseñador de componentes.
     ' No lo modifique con el editor de código.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        components = New System.ComponentModel.Container()
-        Me.ServiceName = "Service1"
+        '
+        'CargaDiaria
+        '
+        Me.ServiceName = "CargaDiariaDeEntradaDelPersonal"
+
     End Sub
 
 End Class
