@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminSQL.vb" />
+    <Compile Include="CargaADataBaseFromClock.vb" />
     <Compile Include="FuncioneDeBusquedaEnMarcajes.vb" />
     <Compile Include="FuncionesConFechas.vb" />
     <Compile Include="FuncionesDeDepuración.vb" />
