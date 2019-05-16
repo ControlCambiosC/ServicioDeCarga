@@ -1,4 +1,6 @@
-﻿Module FuncionesConFechas
+﻿Imports System.Windows.Forms
+Imports System.Windows.Forms.Integration
+Module FuncionesConFechas
 
     ''' <summary>
     ''' Permite pasar de un string de fecha a uno de consulta SQL

@@ -1,6 +1,7 @@
 ﻿Imports ZKSoftwareAPI
-Imports System.Data.SqlClient
+
 Module FuncioneDeBusquedaEnMarcajes
+
     Class DatosDeMarcajeClase
         Property NumeroCredencial As Integer = 0
         Property Year As Integer = 1
@@ -11,6 +12,7 @@ Module FuncioneDeBusquedaEnMarcajes
         Property Segundo As Integer = 6
         Property MarcajeO As Integer = 7
     End Class
+
     Public DatosDeMarcaje As DatosDeMarcajeClase = New DatosDeMarcajeClase()
 
     ''' <summary>
@@ -39,11 +41,13 @@ Module FuncioneDeBusquedaEnMarcajes
                 Return ""
         End Select
     End Function
+
     Function Marcaje2str(ByRef MarcajeOp As MarcajeOperativo)
         Dim MyStr As String = ""
         MyStr = MarcajeOp.NumeroDispositivo + " " + MarcajeOp.Parametro1 + " " + MarcajeOp.Parametro2 + " " + MarcajeOp.Parametro3 + " " + MarcajeOp.Parametro4 + " " + MarcajeOp.Operacion
         Return MyStr
     End Function
+
     Function ComparaLM(ByRef LMarcaje As UsuarioMarcaje, ByVal Parametro As Integer, ByVal Comparativo As Integer)
         If ConsultaUnParametroDeLM(LMarcaje, Parametro) = Comparativo Then
             Return True
@@ -51,6 +55,7 @@ Module FuncioneDeBusquedaEnMarcajes
             Return False
         End If
     End Function
+
     Function ComparaLM(ByRef LMarcaje As UsuarioMarcaje, ByVal Comparativo As MarcajeOperativo)
         Try
             If Marcaje2str(ConsultaUnParametroDeLM(LMarcaje, DatosDeMarcaje.MarcajeO)) = Marcaje2str(Comparativo) Then
@@ -65,6 +70,7 @@ Module FuncioneDeBusquedaEnMarcajes
         End Try
         Return False
     End Function
+
     ''' <summary>
     ''' The name it's only to refer to find the labels for every thing
     ''' </summary>
@@ -72,6 +78,7 @@ Module FuncioneDeBusquedaEnMarcajes
     Function GetTheKClusters()
         Return 0
     End Function
+
     ''' <summary>
     ''' Convierte un marcaje en una lista de strings con su respectivo
     ''' En caso de error regresa una lista con un -1
@@ -81,7 +88,7 @@ Module FuncioneDeBusquedaEnMarcajes
     Function Marcaje2ListOnlyDateTime(ByRef LMarcaje As UsuarioMarcaje)
         Dim MyData As List(Of Integer) = New List(Of Integer)
         Try
-            For Index = 1 To 7
+            For Index = 1 To 6
                 MyData.Add(Convert.ToInt16(ConsultaUnParametroDeLM(LMarcaje, Index)))
             Next
             Return MyData
@@ -91,14 +98,15 @@ Module FuncioneDeBusquedaEnMarcajes
             Return MyData
         End Try
     End Function
+
     Function Marcaje2FormatSqlInList(ByRef LMarcaje As UsuarioMarcaje)
-        Dim Persona As String = Convert.ToString(LMarcaje.Anio)
+        Dim Persona As String = Convert.ToString(LMarcaje.NumeroCredencial)
         Dim FechaOnList As List(Of Integer) = Marcaje2ListOnlyDateTime(LMarcaje)
         Dim MyError As String = ""
         Dim MyData As List(Of String) = New List(Of String)
         If FechaOnList.Count = 6 Then
             Dim MyDate As String = Date2stringSQL(List2date(FechaOnList))
-            MyData.Add(MyDate + Persona)
+            MyData.Add(MyDate + " | " + Persona)
             MyData.Add(Persona)
             MyData.Add(MyDate)
             Return MyData
@@ -107,9 +115,11 @@ Module FuncioneDeBusquedaEnMarcajes
             Return MyData
         End If
     End Function
+
     ''' <summary>
-    ''' Descripcion de los errores 
-    ''' -> (-4), no se afecto la base de datos
+    ''' Descripcion de los errores
+    ''' -> (-5), no se afecto la base de datos
+    ''' -> (-4), Ya existía ese número de nómina a esa hora
     ''' -> (-3), ya existía ese registro
     ''' -> (-2), las listas eran de tamaños diferentes, muy raro
     ''' -> (-1), no se ha podido obtener esa información
@@ -118,29 +128,42 @@ Module FuncioneDeBusquedaEnMarcajes
     ''' <param name="Columnas"></param>
     ''' <param name="MySqlCon"></param>
     ''' <returns></returns>
-    Function Marcaje2DataBase(ByRef LMarcaje As UsuarioMarcaje, ByVal Columnas As List(Of String), ByRef MySqlCon As AdmSQL)
+    Function Marcaje2DataBase(ByRef LMarcaje As UsuarioMarcaje, ByVal Columnas As List(Of String), ByRef MySqlCon As AdmSQL, ByVal MyClv As String, ByVal MyIp As String)
         Dim ListOfData As List(Of String) = Marcaje2FormatSqlInList(LMarcaje)
-        Const MyTable As String = "RelojChecador"
+        Const MyTable As String = "RegReloj"
         If ListOfData.Count > 0 Then
+            ListOfData.Add(MyClv)
+            ListOfData.Add(MyIp)
+            ListOfData(0) = MyClv + " | " + ListOfData(0)
             Dim Igualdades As List(Of String) = MySqlCon.RetornaIgualdades(Columnas, ListOfData)
             If Igualdades.Count > 0 Then
                 Dim Consulta As String = MySqlCon.ArmaConSql(MyTable, Columnas, Igualdades)
                 Dim MyType As Integer
                 If Not MySqlCon.ExisteLaconsulta(Consulta, "ClvUsuario", MyType) Then
-                    If MySqlCon.InsertaEnSql(MyTable, ListOfData) Then
-                        Return 1
+                    Dim Condiciones As List(Of String) = New List(Of String) From {
+                        Columnas(1) + " = '" + ListOfData(1) + "'",
+                        Columnas(2) + " = '" + ListOfData(2) + "'"
+                    }
+                    Dim VerificacionDeExistencia = "( " + Condiciones(0) + " and " + Condiciones(1) + " )"
+                    Consulta = MySqlCon.ArmaConSql("RegReloj", VerificacionDeExistencia)
+                    Dim Strin As String = ""
+                    If Not MySqlCon.ExisteLaconsulta(Consulta, Columnas(1), Strin) Then
+                        If MySqlCon.InsertaEnSql(MyTable, MySqlCon.InsertComillas(ListOfData)) Then
+                            Return 0
+                        Else
+                            Return 1
+                        End If
                     Else
-                        Return -4
-
+                        Return 2
                     End If
                 Else
-                    Return -3
+                    Return 3
                 End If
             Else
-                Return -2
+                Return 4
             End If
         Else
-            Return -1
+            Return 5
         End If
     End Function
 
