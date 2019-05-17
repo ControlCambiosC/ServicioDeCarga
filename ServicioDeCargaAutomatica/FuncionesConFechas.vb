@@ -31,6 +31,16 @@ Module FuncionesConFechas
     End Function
 
     ''' <summary>
+    ''' Permite pasa de una variable DateTime a una variable AñoMesDiahoraMinutoSegundo
+    ''' </summary>
+    ''' <param name="MyTime"></param>
+    ''' <returns></returns>
+    Public Function Date2stringArchivo(ByRef MyTime As DateTime)
+        Return MyTime.Year.ToString + Num2strCero(MyTime.Month) + Num2strCero(MyTime.Day.ToString) _
+            + " " + Num2strCero(MyTime.Hour.ToString) + Num2strCero(MyTime.Minute.ToString) + Num2strCero(MyTime.Second.ToString) + CompletaNumero(MyTime.Millisecond).ToString
+    End Function
+
+    ''' <summary>
     ''' Permite pasa de una variable DateTime a una variable de busqueda SQL, con únicamente la Date
     ''' </summary>
     ''' <param name="MyTime"></param>

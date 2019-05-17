@@ -101,7 +101,7 @@ Public Class AdmSQL
                 End If
             Next
         Catch er As System.Exception
-            MsgBox(er.Message,, "Módulo de armado de consulta condicionada")
+            'MsgBox(er.Message,, "Módulo de armado de consulta condicionada")
             Return ""
         End Try
         Return StrConsulta.Trim
@@ -137,7 +137,8 @@ Public Class AdmSQL
                 End If
             Next
         Catch er As System.Exception
-            MsgBox(er.Message,, "Módulo de armado de consulta condicionada")
+            'MsgBox(er.Message,, "Módulo de armado de consulta condicionada")
+            Return ""
         End Try
         Return StrConsulta.Trim
     End Function
@@ -160,7 +161,8 @@ Public Class AdmSQL
                 End If
             Next
         Catch er As System.Exception
-            MsgBox("Ha habido un error en la busqueda condicionada" + vbCrLf + er.Message + vbCrLf + StrConsulta,, "Error en el módulo armaSQL")
+            'MsgBox("Ha habido un error en la busqueda condicionada" + vbCrLf + er.Message + vbCrLf + StrConsulta,, "Error en el módulo armaSQL")
+            Return ""
         End Try
         Return StrConsulta.Trim
     End Function
@@ -186,7 +188,8 @@ Public Class AdmSQL
         Try
             StrConsulta = StrConsulta + CondBusqueda
         Catch er As System.Exception
-            MsgBox("Ha habido un error en ArmaSql" + vbCrLf + er.Message,, "Error en el módulo armaSQL")
+            'MsgBox("Ha habido un error en ArmaSql" + vbCrLf + er.Message,, "Error en el módulo armaSQL")
+            Return ""
         End Try
         Return StrConsulta.Trim
     End Function
@@ -204,7 +207,7 @@ Public Class AdmSQL
     ''' <param name="Condiciones"></param>
     Function UpdateOnSQL(ByVal TablaSQL As String, ByVal CambiosSQL As List(Of String), ByVal Condiciones As List(Of String))
         Dim Comando As String = "Update " + TablaSQL + " set "
-        Dim MyError As Boolean = False
+        Dim Exito As Integer = 0
         Try
             Dim MaxIndex = CambiosSQL.Count - 1
             For index As Integer = 0 To MaxIndex
@@ -228,16 +231,16 @@ Public Class AdmSQL
                 Dim cmd As New SqlCommand(Comando, con)
                 Dim respuesta = cmd.ExecuteNonQuery()
                 If respuesta = 0 Then
-                    MyError = True
-                    MsgBox("No se ha modificado ninguna columna")
+                    Exito = -1
+                    'MsgBox("No se ha modificado ninguna columna")
                 End If
                 con.Close()
             End Using
         Catch er As System.Exception
-            MsgBox("Ha habido un error en la busqueda condicionada" + vbCrLf + er.Message,, "Error en el módulo armaSQL")
-            MyError = True
+            'MsgBox("Ha habido un error en la busqueda condicionada" + vbCrLf + er.Message,, "Error en el módulo armaSQL")
+            Exito = -1
         End Try
-        Return MyError
+        Return Exito
     End Function
 
     ''' <summary>
@@ -250,7 +253,7 @@ Public Class AdmSQL
     ''' <param name="MyType"></param>
     ''' <returns></returns>
     Function ExisteLaconsulta(ByVal TablaSQL As String, ByVal Consulta As String, ByVal MyColumn As String, ByVal MyType As Object)
-        Dim existe As Boolean = False
+        Dim existe As Integer = 0
         Try
             Using con As New SqlConnection(ConnectionString)
                 con.Open()
@@ -258,17 +261,18 @@ Public Class AdmSQL
                 cmd.Parameters.AddWithValue("@" + MyColumn, MyType)
                 Dim dr As SqlDataReader = cmd.ExecuteReader()
                 While (dr.Read())
-                    existe = True
+                    existe = 1
                 End While
                 con.Close()
             End Using
         Catch ex As System.Exception
-            MsgBox(ex.Message, MsgBoxStyle.Critical, "Error")
+            'MsgBox(ex.Message, MsgBoxStyle.Critical, "Error")
+            existe = -1
         End Try
         Return existe
     End Function
     Function ExisteLaconsulta(ByVal Consulta As String, ByVal MyColumn As String, ByVal MyType As Object)
-        Dim existe As Boolean = False
+        Dim existe As Integer = 0
         Try
             Using con As New SqlConnection(ConnectionString)
                 con.Open()
@@ -276,12 +280,13 @@ Public Class AdmSQL
                 cmd.Parameters.AddWithValue("@" + MyColumn, MyType)
                 Dim dr As SqlDataReader = cmd.ExecuteReader()
                 While (dr.Read())
-                    existe = True
+                    existe = 1
                 End While
                 con.Close()
             End Using
         Catch ex As System.Exception
-            MsgBox(ex.Message, MsgBoxStyle.Critical, "Error")
+            'MsgBox(ex.Message, MsgBoxStyle.Critical, "Error")
+            existe = -1
         End Try
         Return existe
     End Function
@@ -312,7 +317,8 @@ Public Class AdmSQL
                 con.Close()
             End Using
         Catch ex As System.Exception
-            MsgBox("Se ha detectado un error: " + vbCrLf + ex.Message + vbCrLf + Consulta, MsgBoxStyle.Critical, "Error en el modúlo ConsultaDeLinea Consulta-Columnas")
+            'MsgBox("Se ha detectado un error: " + vbCrLf + ex.Message + vbCrLf + Consulta, MsgBoxStyle.Critical, "Error en el modúlo ConsultaDeLinea Consulta-Columnas")
+            listaC.Clear()
         End Try
         Return listaC
     End Function
@@ -325,7 +331,8 @@ Public Class AdmSQL
     ''' <param name="MyValues"></param>
     ''' <returns></returns>
     Function InsertaEnSql(ByVal TablaSQL As String, ByVal MyValues As List(Of String))
-        Dim MyError = False
+        'Dim MyError = False
+        Dim Exito As Integer = 0
         Try
             Dim Comando As String = "Insert Into " + TablaSQL + " Values ("
             Dim Limite = MyValues.Count - 1
@@ -342,16 +349,17 @@ Public Class AdmSQL
                 Dim Respuesta = cmd.ExecuteNonQuery()
                 con.Close()
                 If Respuesta > 0 Then
-                    Return 1
+                    Exito = 1
                 Else
-                    Return -1
+                    Exito = -1
                 End If
             End Using
         Catch ex As System.Exception
             'MsgBox(ex.Message, MsgBoxStyle.Critical, "Error en el modúlo InsertaEnSQL")
-            MyError = True
-            Return -2
+            'MyError = True
+            Exito = -2
         End Try
+        Return Exito
     End Function
 
     ''' <summary>
@@ -380,7 +388,8 @@ Public Class AdmSQL
                 End If
             Next
         Catch er As System.Exception
-            MsgBox(er.Message)
+            'MsgBox(er.Message)
+            Retorno.Clear()
         End Try
         Return Retorno
     End Function
@@ -406,7 +415,8 @@ Public Class AdmSQL
                 con.Close()
             End Using
         Catch ex As System.Exception
-            MsgBox(ex.Message, MsgBoxStyle.Critical, "Error en el modúlo SqlReaderDown2List")
+            'MsgBox(ex.Message, MsgBoxStyle.Critical, "Error en el modúlo SqlReaderDown2List")
+            listaC.Clear()
         End Try
         Return listaC
     End Function
@@ -437,7 +447,7 @@ Public Class AdmSQL
     ''' </summary>
     ''' <returns></returns>
     Function InsertaEnSql(ByVal MyTable As String, ByVal MyColumns As List(Of String), ByVal MyData As List(Of String))
-        Dim MyError = False
+        Dim Exito As Integer = 0
         Try
             If MyColumns.Count = MyData.Count Then
                 Dim Comando As String = "Insert Into " + MyTable + "("
@@ -462,15 +472,22 @@ Public Class AdmSQL
                     con.Open()
                     Dim cmd As New SqlCommand(Comando, con)
                     Dim Respuesta = cmd.ExecuteNonQuery()
+                    If Respuesta > 0 Then
+                        Exito = 1
+                    Else
+                        Exito = -1
+                    End If
                     con.Close()
                 End Using
             Else
-                MsgBox("Las listas no tienen el mismo tamaño en InsertaEnSql",, "AdminSQL")
+                'MsgBox("Las listas no tienen el mismo tamaño en InsertaEnSql",, "AdminSQL")
+                Exito = -2
             End If
         Catch er As System.Exception
-            MsgBox(er.Message,, "AdminSQL")
+            'MsgBox(er.Message,, "AdminSQL")
+            Exito = -3
         End Try
-        Return MyError
+        Return Exito
     End Function
     ''' <summary>
     ''' Esta función intentará crear una nueva base de datos
