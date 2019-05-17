@@ -375,5 +375,13 @@ Module FuncionesConFechas
         Return res(0).ToString + "-" + Num2strCero(res(1).ToString) + "-" + Num2strCero(res(2).ToString) _
            + " " + Num2strCero(res(3).ToString) + ":" + Num2strCero(res(4).ToString) + ":" + Num2strCero(res(5).ToString) + "." + "0" 'Now.Millisecond.ToString
     End Function
-
+    Function Seconds2Milis(ByVal Seconds As Integer)
+        Return Seconds * 1000
+    End Function
+    Function Minutes2Milis(ByVal Minutes As Integer)
+        Return Seconds2Milis(Minutes * 60)
+    End Function
+    Function Hour2Miles(ByVal Horas As Integer)
+        Return Minutes2Milis(Horas * 60)
+    End Function
 End Module

@@ -140,5 +140,37 @@
         Next
         Return -1
     End Function
-
+    ''' <summary>
+    ''' Como se supone que vienen del menor al mayor, siendo el index 0 el menor
+    ''' Esta funcion permite retornar el valor más proximo continuo
+    ''' </summary>
+    ''' <param name="MyActual"></param>
+    ''' <param name="MyList"></param>
+    ''' <returns></returns>
+    Function FindTheNextNumber2Next(ByVal MyActual As Integer, ByVal MyList As List(Of Integer))
+        Dim LongOfList As Integer = MyList.Count()
+        Dim Finded As Boolean = False
+        If LongOfList <> 0 Then
+            Dim Index As Integer = 0
+            For Index = 0 To LongOfList - 1
+                If MyActual < MyList(Index) Then
+                    Finded = True
+                End If
+            Next
+            If Finded = False Then
+                Return MyList(0)
+            Else
+                Return MyList(Index)
+            End If
+        Else
+            Return -1
+        End If
+    End Function
+    Function ListStr2Num(ByVal Lista As List(Of String))
+        Dim MyListConverted As List(Of Integer) = New List(Of Integer)
+        For Each Value As Integer In Lista
+            MyListConverted.Add(Convert.ToInt16(Value))
+        Next
+        Return MyListConverted
+    End Function
 End Module
