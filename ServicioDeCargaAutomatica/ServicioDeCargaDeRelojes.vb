@@ -89,7 +89,7 @@ Public Class ServicioDeCargaDeRelojes
             'Preparativos del intervalo
             Dim LecturaDelIntervalo As List(Of String) = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
             If LecturaDelIntervalo.Count > 0 AndAlso LecturaDelIntervalo(0).Length > 0 Then
-                Dim InterT As Integer = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
+                Dim InterT As Integer = 0
                 If Integer.TryParse(LecturaDelIntervalo(0), InterT) Then
                     If InterT < IntervaloMinimo Then
                         Informe("Se ha registrado un intervalo menor al mínimo, se usará el menor registrado en la servicio" + vbNewLine +
@@ -104,12 +104,12 @@ Public Class ServicioDeCargaDeRelojes
                     Else
                         Informe("Se usara el intervalo de tiempo de " + MyIntervaloDeCarga.ToString)
                     End If
-                    MyContadorDeCarga.Interval = MyIntervaloDeCarga
+                    MyContadorDeCarga.Interval = Minutes2Milis(MyIntervaloDeCarga)
                     MyContadorDeCarga.AutoReset = True
                     MyContadorDeCarga.Start()
                 Else
                     Informe("No se ha podido convertir el valor leído de la base de datos a entero, dato leído:  " + LecturaDelIntervalo(0) + vbNewLine _
-                            + "Se detendrá el servicio ")
+                                + "Se detendrá el servicio ")
                     OnStop()
                 End If
             Else

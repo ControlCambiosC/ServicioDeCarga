@@ -45,7 +45,7 @@ Public Class CargaADataBaseFromClock
     End Sub
     Function IsValid()
         MyDes = MyClvDes.Clv2Desc(MyClv, MySqlCon)
-        MyIpC = MyClv_Ip.Clv2Desc(MyDes, MySqlCon)
+        MyIpC = MyClv_Ip.Clv2Desc(MyClv, MySqlCon)
         Dim IpVacia() As Byte = {0, 0, 0, 0}
         Dim IPchange As IPAddress = New IPAddress(IpVacia)
         If MyClv.Length = 8 And MyIpC.Length > 0 And MyDes.Length > 0 Then
