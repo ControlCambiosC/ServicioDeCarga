@@ -171,7 +171,7 @@
         Dim Temporal As Integer = 0
         For Each Value As Integer In Lista
             If Integer.TryParse(Value, Temporal) Then
-                MyListConverted.Add(Value)
+                MyListConverted.Add(Temporal)
             Else
                 MyListConverted.Clear()
                 Return MyListConverted
