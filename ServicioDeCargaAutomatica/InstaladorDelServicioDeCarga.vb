@@ -1,7 +1,7 @@
 ﻿Imports System.ComponentModel
 Imports System.Configuration.Install
 
-Public Class ProjectInstaller
+Public Class InstaladorDelServicioDeCarga
 
     Public Sub New()
         MyBase.New()

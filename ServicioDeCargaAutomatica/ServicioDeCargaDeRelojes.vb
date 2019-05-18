@@ -10,14 +10,14 @@ Imports System.Diagnostics
 Imports System.Threading.Thread
 Imports System.ComponentModel
 
-Public Class Service1
-    Protected Friend MyContadorDeInicio As New Timers.Timer
-    Protected Friend MyContadorDeCarga As New Timers.Timer
+Public Class ServicioDeCargaDeRelojes
+    Protected Friend MyContadorDeInicio As Timers.Timer = New Timers.Timer
+    Protected Friend MyContadorDeCarga As Timers.Timer = New Timers.Timer
 
     Protected Friend MyClocks As List(Of ZKSoftware) = New List(Of ZKSoftware)
 
     Protected Friend MySqlCon As AdmSQL = New AdmSQL("192.168.0.100", "RelojChecador", "usuarios", "1234")
-    Protected Const MyConsultaInicio As String = "Select * from ParametricosDeRelojes where Parametro like 'PuntoI%' order by Valor ASC"
+    Protected Const MyConsultaInicio As String = "Select Valor from ParametricosDeRelojes where Parametro like 'PuntoI%' order by Valor ASC"
     Protected Friend MyPointsInicio As List(Of Integer) = New List(Of Integer)
 
     Const MyUbicationOfLogs As String = "C:\LogsDeCargaDeLosRelojes"
@@ -34,15 +34,19 @@ Public Class Service1
     Protected Overrides Sub OnStart(ByVal args() As String)
         ' Agregue el código aquí para iniciar el servicio. Este método debería poner
         ' en movimiento los elementos para que el servicio pueda funcionar.
-
-        MyContadorDeInicio = New Timers.Timer
-        AddHandler MyContadorDeInicio.Elapsed, AddressOf ProcesandoElInicio
-        MyContadorDeCarga = New Timers.Timer
-        MyContadorDeCarga.AutoReset = True
-        AddHandler MyContadorDeCarga.Elapsed, AddressOf ConexionYCargaDeRelojes
-        ProcesandoElInicio()
-        MyCargaOnBackGround.WorkerReportsProgress = True
-        MyCargaOnBackGround.WorkerSupportsCancellation = True
+        Try
+            'MyContadorDeInicio = New Timers.Timer
+            AddHandler MyContadorDeInicio.Elapsed, AddressOf ProcesandoElInicio
+            'MyContadorDeCarga = New Timers.Timer
+            MyContadorDeCarga.AutoReset = True
+            AddHandler MyContadorDeCarga.Elapsed, AddressOf ConexionYCargaDeRelojes
+            ProcesandoElInicio()
+            MyCargaOnBackGround.WorkerReportsProgress = True
+            MyCargaOnBackGround.WorkerSupportsCancellation = True
+        Catch MyErro As System.Exception
+            Informe("Ha habído un error al iniciar el servicio: " + vbNewLine + MyErro.Message.ToString)
+            Me.Finalize()
+        End Try
     End Sub
 
     Protected Overrides Sub OnStop()
@@ -57,10 +61,14 @@ Public Class Service1
         Dim ListaTemporal As List(Of String) = MySqlCon.SqlReaderDown2List(MyConsultaInicio)
         If ListaTemporal.Count > 0 Then
             MyPointsInicio = ListStr2Num(ListaTemporal)
-            Dim NextMinute As Integer = FindTheNextNumber2Next(Now.Minute, MyPointsInicio)
-            MyContadorDeInicio.Interval = NextMinute
+            If MyPointsInicio.Count > 0 Then
+                Dim NextMinute As Integer = FindTheNextNumber2Next(Now.Minute, MyPointsInicio)
+                MyContadorDeInicio.Interval = NextMinute
+            Else
+                Informe("No se ha podido convertir la información de los tiempos de inicio a números: datos" + +vbNewLine + List2Secciones(ListaTemporal))
+            End If
         Else
-            Informe("No se han obtenido los datos de los relojes checadores")
+                Informe("No se han obtenido los datos de los relojes checadores")
         End If
     End Sub
 

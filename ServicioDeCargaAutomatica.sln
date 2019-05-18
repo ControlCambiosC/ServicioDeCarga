@@ -5,16 +5,31 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ServicioDeCargaAutomatica", "ServicioDeCargaAutomatica\ServicioDeCargaAutomatica.vbproj", "{38FC200E-95A4-4F57-9474-A6D98188ABEC}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "InstaladorDelServicioDeCarga", "InstaladorDelServicioDeCarga\InstaladorDelServicioDeCarga.vdproj", "{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Debug|x64.Build.0 = Debug|Any CPU
 		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Release|x64.ActiveCfg = Release|x64
+		{38FC200E-95A4-4F57-9474-A6D98188ABEC}.Release|x64.Build.0 = Release|x64
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Debug|Any CPU.ActiveCfg = Debug
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Debug|Any CPU.Build.0 = Debug
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Debug|x64.ActiveCfg = Debug
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Debug|x64.Build.0 = Debug
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Release|Any CPU.ActiveCfg = Release
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Release|x64.ActiveCfg = Release
+		{7421CB61-DAC8-4DD4-AF6C-13FF94A71619}.Release|x64.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

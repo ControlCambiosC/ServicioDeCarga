@@ -168,8 +168,14 @@
     End Function
     Function ListStr2Num(ByVal Lista As List(Of String))
         Dim MyListConverted As List(Of Integer) = New List(Of Integer)
+        Dim Temporal As Integer = 0
         For Each Value As Integer In Lista
-            MyListConverted.Add(Convert.ToInt16(Value))
+            If Integer.TryParse(Value, Temporal) Then
+                MyListConverted.Add(Value)
+            Else
+                MyListConverted.Clear()
+                Return MyListConverted
+            End If
         Next
         Return MyListConverted
     End Function
