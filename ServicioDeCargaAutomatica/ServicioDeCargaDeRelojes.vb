@@ -107,6 +107,7 @@ Public Class ServicioDeCargaDeRelojes
                     MyContadorDeCarga.Interval = Minutes2Milis(MyIntervaloDeCarga)
                     MyContadorDeCarga.AutoReset = True
                     MyContadorDeCarga.Start()
+                    MyCargaOnBackGround.RunWorkerAsync()
                 Else
                     Informe("No se ha podido convertir el valor leído de la base de datos a entero, dato leído:  " + LecturaDelIntervalo(0) + vbNewLine _
                                 + "Se detendrá el servicio ")
