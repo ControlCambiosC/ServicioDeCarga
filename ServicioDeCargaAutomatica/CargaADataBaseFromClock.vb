@@ -5,10 +5,10 @@ Imports ZKSoftwareAPI
 Imports System.Net
 Public Class CargaADataBaseFromClock
     'Trabajador del proceso
-    Private WithEvents ProcesoCompleto As BackgroundWorker = New BackgroundWorker()
+    'Private WithEvents ProcesoCompleto As BackgroundWorker = New BackgroundWorker()
     'Cambiadores
     Dim MyClvDes As MyTriosDeConsulta = New MyTriosDeConsulta("Relojes", "Descripcion", "Clave_Reloj")
-    Dim MyIP_Des As MyTriosDeConsulta = New MyTriosDeConsulta("Relojes", "Descripcion", "IP_asignada")
+    Dim MyClv_Ip As MyTriosDeConsulta = New MyTriosDeConsulta("Relojes", "IP_asignada", "Clave_Reloj")
     Dim MyClv As String = ""
     Dim MyIpC As String = ""
     Dim MyDes As String = ""
@@ -33,44 +33,50 @@ Public Class CargaADataBaseFromClock
     'Listas de columnas
     Dim MyColumns As List(Of String) = New List(Of String)
     Dim MyColRegs As List(Of String) = New List(Of String)
-    Dim Respuesta As Integer
-    Sub New(ByVal MyClockDes As String, ByRef SeAlmacenaLaRespuesta As Integer)
-        ProcesoCompleto.WorkerSupportsCancellation = True
-        ProcesoCompleto.WorkerReportsProgress = True
-        MyDes = MyClockDes
+    Dim Respuesta As Integer = 0
+    Sub New(ByVal MyClockClv As String) ' ByRef SeAlmacenaLaRespuesta As Integer)
+        'ProcesoCompleto.WorkerSupportsCancellation = True
+        'ProcesoCompleto.WorkerReportsProgress = True
+        MyClv = MyClockClv
         FechaI = Now
         MyColumns = MySqlCon.SqlReaderDown2List("Select Column_name from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + MyTable + "'")
         MyColRegs = MySqlCon.SqlReaderDown2List("Select Column_name from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + MyTReg + "'")
-        Respuesta = SeAlmacenaLaRespuesta
+        'Respuesta = SeAlmacenaLaRespuesta
     End Sub
     Function IsValid()
-        MyClv = MyClvDes.Des2Clv(MyDes, MySqlCon)
-        MyIpC = MyIP_Des.Des2Clv(MyDes, MySqlCon)
+        MyDes = MyClvDes.Clv2Desc(MyClv, MySqlCon)
+        MyIpC = MyClv_Ip.Clv2Desc(MyDes, MySqlCon)
         Dim IpVacia() As Byte = {0, 0, 0, 0}
         Dim IPchange As IPAddress = New IPAddress(IpVacia)
-        If MyClv.Length = 8 And MyIpC.Length > 0 Then
+        If MyClv.Length = 8 And MyIpC.Length > 0 And MyDes.Length > 0 Then
             If IPAddress.TryParse(MyIpC, IPchange) Then
                 MyIpC = IPchange.ToString()
                 Return True
+                Exit Function
             End If
         End If
+        Informe("Los datos del reloj son invalidos: " + vbNewLine +
+                "Clave        : " + MyClv + vbNewLine +
+                "Descripcion  : " + MyDes + vbNewLine +
+                "Ip registrada: " + MyIpC
+                )
         Return False
     End Function
 
-    Private Sub ProcesoCompleto_DoWork(sender As Object, e As DoWorkEventArgs) Handles ProcesoCompleto.DoWork
+    Public Sub ProcesoCompleto()
         Dim Respuesta As Integer = 0
         Dim ProgresoT As Integer = 0
         Dim ContadorA As Integer = 0
         Dim ContadorO As Integer = 0
         Dim ContadorE As Integer = 0
         Dim Maximo As Integer = 0
-        ProcesoCompleto.ReportProgress(1)
+        'ProcesoCompleto.ReportProgress(1)
         If IsValid() Then
-            ProcesoCompleto.ReportProgress(10)
+            'ProcesoCompleto.ReportProgress(10)
             If MyClock.DispositivoConectar(MyIpC, 5, False) Then
-                ProcesoCompleto.ReportProgress(25)
+                ' ProcesoCompleto.ReportProgress(25)
                 If MyClock.DispositivoObtenerRegistrosAsistencias() Then
-                    ProcesoCompleto.ReportProgress(30)
+                    'ProcesoCompleto.ReportProgress(30)
                     Maximo = MyClock.ListaMarcajes.Count
                     Try
                         For Each Registro As UsuarioMarcaje In MyClock.ListaMarcajes
@@ -84,19 +90,25 @@ Public Class CargaADataBaseFromClock
                             End If
                             ProgresoT = ProgresoT + 1
                             'MyProgress.SetProgress(ProgresoTotal)
-                            ProcesoCompleto.ReportProgress(Convert.ToInt16((100 * ProgresoT / Maximo) / 2 + 30))
+                            'ProcesoCompleto.ReportProgress(Convert.ToInt16((100 * ProgresoT / Maximo) / 2 + 30))
                         Next
                         FechaT = Now
-                        ProcesoCompleto.ReportProgress(81)
+                        'ProcesoCompleto.ReportProgress(81)
                         'We need to load this information to the database so ...
                         ErrorDeNlvJ = 0
                     Catch MyE As System.Exception
+                        Informe("Error al subir a la base de datos del reloj: " + vbTab + MyClv + vbTab + MyDes + vbNewLine +
+                                "Error: " + MyE.Message.ToString)
                         ErrorDeNlvJ = 1
                     End Try
                 Else
+                    Informe("No se ha podido obtener los registros de asistencia del reloj: " + vbTab + MyClv + vbTab + MyDes + vbNewLine +
+                            "Error: " + MyClock.ERROR.ToString)
                     ErrorDeNlvJ = 2
                 End If
             Else
+                Informe("No se ha podido conectar al reloj: " + vbTab + MyClv + vbTab + MyDes + vbNewLine +
+                            "Error: " + MyClock.ERROR.ToString)
                 ErrorDeNlvJ = 3
             End If
         Else
@@ -104,10 +116,20 @@ Public Class CargaADataBaseFromClock
         End If
         '-----Registro de las acciones realizadas
         If Not CargaLog(FechaI, FechaT, Maximo, ContadorA, ContadorO, ContadorE, MyClv, MyIpC, MyErroresOnTxt(ErrorDeNlvJ)) = 1 Then
-            ErrorDeNlvJ = 5
+            Dim DataToRegister As List(Of String) = New List(Of String)
+            DataToRegister.Add(Date2stringSQL(FechaI).ToString)
+            DataToRegister.Add(Date2stringSQL(FechaT).ToString)
+            DataToRegister.Add(Maximo.ToString)
+            DataToRegister.Add(ContadorA.ToString)
+            DataToRegister.Add(ContadorO.ToString)
+            DataToRegister.Add(ContadorE.ToString)
+            DataToRegister.Add(MyClv.ToString)
+            DataToRegister.Add(MyIpC.ToString)
+            DataToRegister.Add(ErrorDeNlvJ.ToString + vbTab + " - " + MyErroresOnTxt(ErrorDeNlvJ))
+            Informe("No se ha podido cargar la informacion al log de cargas " + List2Secciones(DataToRegister))
         End If
         MyClock.DispositivoDesconectar()
-        ProcesoCompleto.ReportProgress(100)
+        'ProcesoCompleto.ReportProgress(100)
     End Sub
 
     Function CargaLog(FechaI, FechaT, Maximo, ContadorA, ContadorO, ContadorE, MyClv, MyIpC, MyError)
@@ -123,7 +145,7 @@ Public Class CargaADataBaseFromClock
         DataToRegister.Add(MyClv)
         DataToRegister.Add(MyIpC)
         DataToRegister.Add(MyError)
-        ProcesoCompleto.ReportProgress(85)
+        'ProcesoCompleto.ReportProgress(85)
         Dim ListaAInsertar As List(Of String) = MySqlCon.InsertComillas(DataToRegister)
         If ListaAInsertar.Count > 0 Then
             If MySqlCon.InsertaEnSql(MyTReg, ListaAInsertar) Then

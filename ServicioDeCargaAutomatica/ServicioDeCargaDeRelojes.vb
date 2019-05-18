@@ -87,10 +87,10 @@ Public Class ServicioDeCargaDeRelojes
             MyContadorDeInicio.Stop()
             Informe("Se ha detenido el contador de inicio que inicia las cargas en las bases de datos a las " + DateOnlyTime2stringSQL(Now) + "del " + DateOnlyDate2stringSQL(Now))
             'Preparativos del intervalo
-            Dim LecturaDelIntervalo As String = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
-            If LecturaDelIntervalo.Length > 0 Then
+            Dim LecturaDelIntervalo As List(Of String) = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
+            If LecturaDelIntervalo.Count > 0 AndAlso LecturaDelIntervalo(0).Length > 0 Then
                 Dim InterT As Integer = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
-                If Integer.TryParse(LecturaDelIntervalo, InterT) Then
+                If Integer.TryParse(LecturaDelIntervalo(0), InterT) Then
                     If InterT < IntervaloMinimo Then
                         Informe("Se ha registrado un intervalo menor al mínimo, se usará el menor registrado en la servicio" + vbNewLine +
                             "Intervalo mínimo:" + vbTab + IntervaloMinimo.ToString + vbTab + "Intervalo registrado:" + vbTab + InterT.ToString)
@@ -105,9 +105,10 @@ Public Class ServicioDeCargaDeRelojes
                         Informe("Se usara el intervalo de tiempo de " + MyIntervaloDeCarga.ToString)
                     End If
                     MyContadorDeCarga.Interval = MyIntervaloDeCarga
-
+                    MyContadorDeCarga.AutoReset = True
+                    MyContadorDeCarga.Start()
                 Else
-                    Informe("No se ha podido convertir el valor leído de la base de datos a entero, dato leído:  " + LecturaDelIntervalo + vbNewLine _
+                    Informe("No se ha podido convertir el valor leído de la base de datos a entero, dato leído:  " + LecturaDelIntervalo(0) + vbNewLine _
                             + "Se detendrá el servicio ")
                     OnStop()
                 End If
@@ -131,7 +132,10 @@ Public Class ServicioDeCargaDeRelojes
         If MyClocksClv.Count > 0 Then
             For Each Clv As String In MyClocksClv
                 'Aquí entra el proceso de la magia eterna
+                Dim MyCarga As CargaADataBaseFromClock = New CargaADataBaseFromClock(Clv)
+                MyCarga.ProcesoCompleto()
             Next
+            Informe("Se termino la carga")
         Else
             Informe("No se ha podido obtener la información de los relojes checadores, se intentará en el siguiente intervalo de carga")
         End If
