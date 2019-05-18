@@ -148,23 +148,37 @@
     ''' <param name="MyList"></param>
     ''' <returns></returns>
     Function FindTheNextNumber2Next(ByVal MyActual As Integer, ByVal MyList As List(Of Integer))
+        Dim Index As Integer = 0
         Dim LongOfList As Integer = MyList.Count()
         Dim Finded As Boolean = False
-        If LongOfList <> 0 Then
-            Dim Index As Integer = 0
-            For Index = 0 To LongOfList - 1
-                If MyActual < MyList(Index) Then
-                    Finded = True
+        Try
+            If LongOfList > 0 Then
+                For Index = 0 To LongOfList - 1
+                    If MyActual < MyList(Index) Then
+                        Finded = True
+                        Return MyList(Index)
+                        Exit Function
+                    End If
+                Next
+                If Finded = False Then
+                    Return MyList(0)
+                Else
+                    Return MyList(Index)
                 End If
-            Next
-            If Finded = False Then
-                Return MyList(0)
             Else
-                Return MyList(Index)
+                Informe("No se han logrado obtener los datos de los intervalos")
+                Return -1
             End If
-        Else
-            Return -1
-        End If
+        Catch er As System.Exception
+            Informe("Error al buscar el siguiente minuto para iniciar el servicio, datos: " + vbNewLine _
+                 + "Valor buscado: " + MyActual.ToString() _
+                 + List2Secciones(ListNum2Str(MyList)) + vbNewLine _
+                 + "Error: " + er.Message.ToString _
+                 + "Index: " + Index.ToString _
+                 + "Longitud: " + LongOfList.ToString _
+                 + "Finded: " + Finded.ToString)
+            Return -2
+        End Try
     End Function
     Function ListStr2Num(ByVal Lista As List(Of String))
         Dim MyListConverted As List(Of Integer) = New List(Of Integer)
@@ -173,9 +187,18 @@
             If Integer.TryParse(Value, Temporal) Then
                 MyListConverted.Add(Temporal)
             Else
+                Informe("Error al convertir la lista de tiempos a valores númericos: " + vbNewLine _
+                    + List2Secciones(Lista))
                 MyListConverted.Clear()
                 Return MyListConverted
             End If
+        Next
+        Return MyListConverted
+    End Function
+    Function ListNum2Str(ByVal Lista As List(Of Integer))
+        Dim MyListConverted As List(Of String) = New List(Of String)
+        For Each Value As Integer In Lista
+            MyListConverted.Add(Value.ToString)
         Next
         Return MyListConverted
     End Function

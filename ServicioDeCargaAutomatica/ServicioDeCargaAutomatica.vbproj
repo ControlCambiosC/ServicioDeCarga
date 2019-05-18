@@ -105,6 +105,7 @@
     <Compile Include="FuncioneDeBusquedaEnMarcajes.vb" />
     <Compile Include="FuncionesConFechas.vb" />
     <Compile Include="FuncionesDeDepuración.vb" />
+    <Compile Include="FuncionesDelLogYEventos.vb" />
     <Compile Include="FuncionesNumericas.vb" />
     <Compile Include="FuncionesParaListas.vb" />
     <Compile Include="My Project\Application.Designer.vb">

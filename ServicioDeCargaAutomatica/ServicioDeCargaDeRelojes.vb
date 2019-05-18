@@ -1,26 +1,22 @@
-﻿Imports ZKSoftwareAPI
-Imports System.Text
-Imports System.Security.Cryptography
-Imports System.IO.TextReader
-Imports System.IO.TextWriter
-Imports System
-Imports System.IO
-Imports System.Collections
-Imports System.Diagnostics
-Imports System.Threading.Thread
-Imports System.ComponentModel
+﻿Imports System.ComponentModel
+Imports ZKSoftwareAPI
 
 Public Class ServicioDeCargaDeRelojes
     Protected Friend MyContadorDeInicio As Timers.Timer = New Timers.Timer
     Protected Friend MyContadorDeCarga As Timers.Timer = New Timers.Timer
 
-    Protected Friend MyClocks As List(Of ZKSoftware) = New List(Of ZKSoftware)
+    Protected Const MyConsultaDeClocks As String = "Select Clave_Reloj from Relojes order by Descripcion"
+    Protected CambiadorDeClvToDes As MyTriosDeConsulta = New MyTriosDeConsulta("Relojes", "Clave_Reloj", "Descripcion")
+    Protected Friend MyClocksClv As List(Of String) = New List(Of String)
 
     Protected Friend MySqlCon As AdmSQL = New AdmSQL("192.168.0.100", "RelojChecador", "usuarios", "1234")
     Protected Const MyConsultaInicio As String = "Select Valor from ParametricosDeRelojes where Parametro like 'PuntoI%' order by Valor ASC"
     Protected Friend MyPointsInicio As List(Of Integer) = New List(Of Integer)
 
-    Const MyUbicationOfLogs As String = "C:\LogsDeCargaDeLosRelojes"
+    Protected Const MyConsultaDeIntervalo = "Select Valor from ParametricosDeRelojes where Parametro='IntervaloEnMin'"
+    Protected Const IntervaloMinimo As Integer = 10 'Minutos Es el mínimo intervalo aceptado
+    Protected Const IntervaloMaximo As Integer = 2880 'Es el máximo valor del intervalo aceptado que corresponde a dos días
+    Protected Friend MyIntervaloDeCarga As Integer = 90  'Este es el valor por defecto
 
     Protected Friend MyCategoriasDelError As List(Of String) = New List(Of String) From {
     "No se ha podido el text del log de los errores",
@@ -36,10 +32,10 @@ Public Class ServicioDeCargaDeRelojes
         ' en movimiento los elementos para que el servicio pueda funcionar.
         Try
             'MyContadorDeInicio = New Timers.Timer
-            AddHandler MyContadorDeInicio.Elapsed, AddressOf ProcesandoElInicio
+            AddHandler MyContadorDeInicio.Elapsed, AddressOf ConfiguracionDePrimeraCarga
             'MyContadorDeCarga = New Timers.Timer
             MyContadorDeCarga.AutoReset = True
-            AddHandler MyContadorDeCarga.Elapsed, AddressOf ConexionYCargaDeRelojes
+            AddHandler MyContadorDeCarga.Elapsed, AddressOf ACargarDatos
             ProcesandoElInicio()
             MyCargaOnBackGround.WorkerReportsProgress = True
             MyCargaOnBackGround.WorkerSupportsCancellation = True
@@ -63,82 +59,82 @@ Public Class ServicioDeCargaDeRelojes
             MyPointsInicio = ListStr2Num(ListaTemporal)
             If MyPointsInicio.Count > 0 Then
                 Dim NextMinute As Integer = FindTheNextNumber2Next(Now.Minute, MyPointsInicio)
-                MyContadorDeInicio.Interval = NextMinute
+                If NextMinute > 0 Then
+                    Dim MyEspera As Integer = NextMinute - Now.Minute
+                    MyContadorDeInicio.Interval = Minutes2Milis(MyEspera)
+                    MyContadorDeInicio.Start()
+                    Informe("Se ha iniciado la espera para empezar las cargas." + vbNewLine +
+                            "Iniciando el servicio en " + MyEspera.ToString + " minutos, considerando el inicio al minuto " + NextMinute.ToString)
+                ElseIf NextMinute = 0 Then
+                    Dim MyEspera As Integer = 60 - Now.Minute
+                    MyContadorDeInicio.Interval = Minutes2Milis(MyEspera)
+                    MyContadorDeInicio.Start()
+                    Informe("Se ha iniciado la espera para empezar las cargas." + vbNewLine +
+                            "Iniciando el servicio en " + MyEspera.ToString + "  minutos, considerando el inicio al minuto " + NextMinute.ToString)
+                Else
+                    Informe("Se ha devuelto de la busqueda del intervalo siguiente el valor de :" + NextMinute.ToString)
+                End If
             Else
                 Informe("No se ha podido convertir la información de los tiempos de inicio a números: datos" + +vbNewLine + List2Secciones(ListaTemporal))
             End If
         Else
-                Informe("No se han obtenido los datos de los relojes checadores")
+            Informe("No se han obtenido los datos de los relojes checadores")
         End If
     End Sub
 
-    Protected Friend Sub ConexionYCargaDeRelojes()
-        If MyContadorDeInicio.Enabled Then
-            MyContadorDeInicio.Enabled = False
-            Informe("Se ha detenido el contador de inicio que inicia las cargas en las bases de datos")
-        End If
-        Informe("Se ha iniciado el trabajador de segundo plano")
-        MyCargaOnBackGround.RunWorkerAsync()
-    End Sub
-    Protected Sub IniciaElTimerDeCarga()
+    Protected Friend Sub ConfiguracionDePrimeraCarga()
+        Try
+            MyContadorDeInicio.Stop()
+            Informe("Se ha detenido el contador de inicio que inicia las cargas en las bases de datos a las " + DateOnlyTime2stringSQL(Now) + "del " + DateOnlyDate2stringSQL(Now))
+            'Preparativos del intervalo
+            Dim LecturaDelIntervalo As String = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
+            If LecturaDelIntervalo.Length > 0 Then
+                Dim InterT As Integer = MySqlCon.SqlReaderDown2List(MyConsultaDeIntervalo)
+                If Integer.TryParse(LecturaDelIntervalo, InterT) Then
+                    If InterT < IntervaloMinimo Then
+                        Informe("Se ha registrado un intervalo menor al mínimo, se usará el menor registrado en la servicio" + vbNewLine +
+                            "Intervalo mínimo:" + vbTab + IntervaloMinimo.ToString + vbTab + "Intervalo registrado:" + vbTab + InterT.ToString)
 
-    End Sub
-    Protected Sub LecturaDeConfiguraciones()
+                        MyIntervaloDeCarga = IntervaloMinimo
+                    ElseIf InterT > IntervaloMaximo Then
+                        Informe("Se ha registrado un intervalo mayor al máximo, se usará el máximo registrado en la servicio" + vbNewLine +
+                        "Intervalo máximo:" + vbTab + IntervaloMaximo.ToString + vbTab + "Intervalo registrado:" + vbTab + InterT.ToString)
 
-    End Sub
-    Protected Friend Sub Informe(ByVal Txt2Inform As String)
-        Dim HoraAhora As DateTime = Now
-        Dim RutaDeArchivo As String = MyUbicationOfLogs + "\Registro" + Date2stringArchivo(HoraAhora) + ".txt"
-        If Directory.Exists(MyUbicationOfLogs) Then
-            If Not File.Exists(RutaDeArchivo) Then
-                Try
-                    Dim MyWriter As StreamWriter = New StreamWriter(RutaDeArchivo)
-                    MyWriter.WriteLine("---Este es un informe del servicio de segundo plando de la carga de los relojes---")
-                    MyWriter.WriteLine("->Evento sucedido a las:" + vbTab + Date2stringSQL(Now))
-                    MyWriter.WriteLine("Reporte:")
-                    MyWriter.WriteLine(Txt2Inform)
-                    MyWriter.WriteLine("Servicio creado por Alan Fernando Santacruz Rodríguez")
-                    MyWriter.Close()
-                Catch MyErrorEnEscritura As System.Exception
-                    InformeDeErrorAlEscribirElLog("No se ha podido realizar la escritura del Log a las " + Date2stringSQL(Now))
-                End Try
+                        MyIntervaloDeCarga = IntervaloMaximo
+                    Else
+                        Informe("Se usara el intervalo de tiempo de " + MyIntervaloDeCarga.ToString)
+                    End If
+                    MyContadorDeCarga.Interval = MyIntervaloDeCarga
+
+                Else
+                    Informe("No se ha podido convertir el valor leído de la base de datos a entero, dato leído:  " + LecturaDelIntervalo + vbNewLine _
+                            + "Se detendrá el servicio ")
+                    OnStop()
+                End If
             Else
-                Directory.CreateDirectory("C:\LogsDeCargaDeLosRelojes")
+                Informe("No se han podido obtener el intervalo de la base de datos, se detendrá el servicio.")
+                OnStop()
             End If
-        End If
+        Catch er As System.Exception
+            Informe("Se ha encontrado un error en la configuracion de primera carga, a continuacion se muestra la descripcion del error: " + vbNewLine + er.Message.ToString)
+            OnStop()
+        End Try
+
     End Sub
-    Protected Sub InformeDeErrorAlEscribirElLog(ByVal sEvent As String)
-        'Const strOrigen = "Servicio de carga del reloj checador"
-        'Const strRegistro = "No se ha podido el text del log de los errores"
-        'Const strEvento = "Ejemplo de un evento en el visor de sucesos de Windows"
-        'Const strEquipo = "Servidor de la base de datos del reloj checador"
-        'If (Not EventLog.Exists(strOrigen, strEquipo)) Then
-
-        '    Dim objOrigenEvento As EventSourceCreationData = New EventSourceCreationData(strOrigen, strRegistro)
-        'End If
-        'Dim objEvento As EventLog = New EventLog(strRegistro, strEquipo, strOrigen)
-        'objEvento.WriteEntry(seve)
-        'objEvento.WriteEntry(strOrigen, "No se podido", EventLogEntryType.Error, 234, 6)
-        Dim sSource As String
-        Dim sLog As String
-        'Dim sEvent As String
-        Dim sMachine As String
-
-        sSource = "Servicio de carga de fondo del reloj"
-        sLog = "Application"
-        sEvent = "EscrituraDelLog"
-        sMachine = "."
-
-        If Not EventLog.SourceExists(sSource, sMachine) Then
-            EventLog.CreateEventSource(sSource, sLog, sMachine)
-        End If
-
-        Dim ELog As New EventLog(sLog, sMachine, sSource)
-        ELog.WriteEntry(sEvent)
-        ELog.WriteEntry(sEvent, EventLogEntryType.Error, 234, CType(3, Short))
+    Protected Friend Sub ACargarDatos()
+        MyCargaOnBackGround.RunWorkerAsync()
     End Sub
 
     Private Sub MyCargaOnBackGround_DoWork(sender As Object, e As DoWorkEventArgs) Handles MyCargaOnBackGround.DoWork
-
+        Informe("Se ha iniciado el proceso de carga de los relojes checadores, es un proceso que puede utilizar recursos importantes por un momento")
+        MyClocksClv = MySqlCon.SqlReaderDown2List(MyConsultaDeClocks)
+        If MyClocksClv.Count > 0 Then
+            For Each Clv As String In MyClocksClv
+                'Aquí entra el proceso de la magia eterna
+            Next
+        Else
+            Informe("No se ha podido obtener la información de los relojes checadores, se intentará en el siguiente intervalo de carga")
+        End If
     End Sub
+
 End Class
