@@ -136,7 +136,7 @@ Public Class ServicioDeCargaDeRelojes
                 Dim MyCarga As CargaADataBaseFromClock = New CargaADataBaseFromClock(Clv)
                 MyCarga.ProcesoCompleto()
             Next
-            Informe("Se termino la carga")
+            Informe("Se termino la carga de: " + List2Secciones(MyClocksClv))
         Else
             Informe("No se ha podido obtener la información de los relojes checadores, se intentará en el siguiente intervalo de carga")
         End If

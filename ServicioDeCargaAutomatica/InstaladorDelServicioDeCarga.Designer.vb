@@ -33,8 +33,8 @@
         'ServicioDeCargaDelReloj
         '
         Me.ServicioDeCargaDelReloj.Description = "Es el servicio encargado de mantener la base de datos en el servidor actualizada"
-        Me.ServicioDeCargaDelReloj.DisplayName = "ServicioDeCargaAutomatica"
-        Me.ServicioDeCargaDelReloj.ServiceName = "CargaDiariaDeEntradaDelPersonal"
+        Me.ServicioDeCargaDelReloj.DisplayName = "Servicio de carga de los relojes a la base de datos"
+        Me.ServicioDeCargaDelReloj.ServiceName = "Servicio de carga de los relojes checadores"
         Me.ServicioDeCargaDelReloj.StartType = System.ServiceProcess.ServiceStartMode.Automatic
         '
         'InstaladorDelServicioDeCarga

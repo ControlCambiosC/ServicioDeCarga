@@ -1,5 +1,5 @@
 ﻿Imports ZKSoftwareAPI
-
+Imports System.Data.SqlTypes
 Module FuncioneDeBusquedaEnMarcajes
 
     Class DatosDeMarcajeClase
@@ -138,28 +138,31 @@ Module FuncioneDeBusquedaEnMarcajes
             Dim Igualdades As List(Of String) = MySqlCon.RetornaIgualdades(Columnas, ListOfData)
             If Igualdades.Count > 0 Then
                 Dim Consulta As String = MySqlCon.ArmaConSql(MyTable, Columnas, Igualdades)
-                Dim MyType As Integer
-                If Not MySqlCon.ExisteLaconsulta(Consulta, "ClvUsuario", MyType) Then
+                'Dim MyType As Integer
+                If Not MySqlCon.ExisteLaconsulta(Consulta, Columnas(0), DbType.String) Then
                     Dim Condiciones As List(Of String) = New List(Of String) From {
                         Columnas(1) + " = '" + ListOfData(1) + "'",
                         Columnas(2) + " = '" + ListOfData(2) + "'"
                     }
                     Dim VerificacionDeExistencia = "( " + Condiciones(0) + " and " + Condiciones(1) + " )"
                     Consulta = MySqlCon.ArmaConSql("RegReloj", VerificacionDeExistencia)
-                    Dim Strin As String = ""
-                    If Not MySqlCon.ExisteLaconsulta(Consulta, Columnas(1), Strin) Then
-                        If MySqlCon.InsertaEnSql(MyTable, MySqlCon.InsertComillas(ListOfData)) Then
+                    'Dim Strin As String = ""
+                    Dim ResultadoConsulta As Integer = MySqlCon.ExisteLaconsulta(Consulta, Columnas(1), DbType.String)
+                    If ResultadoConsulta = 0 Then
+                        If MySqlCon.InsertaEnSql(MyTable, MySqlCon.InsertComillas(ListOfData)) = 1 Then
                             Return 0
-                        Else
+                        ElseIf ResultadoConsulta = 1 Then 'No se añadio a la base de datos
                             Return 1
+                        Else    'Error interno del programa de inserción
+                            Return -1
                         End If
-                    Else
+                    Else    'Ya existia ese registro
                         Return 2
                     End If
-                Else
+                Else    'Ya existia ese registro
                     Return 3
                 End If
-            Else
+            Else    'Las listas no fueron bien computadas
                 Return 4
             End If
         Else
