@@ -102,6 +102,7 @@ Public Class ServicioDeCargaDeRelojes
 
                         MyIntervaloDeCarga = IntervaloMaximo
                     Else
+                        MyIntervaloDeCarga = InterT
                         Informe("Se usara el intervalo de tiempo de " + MyIntervaloDeCarga.ToString)
                     End If
                     MyContadorDeCarga.Interval = Minutes2Milis(MyIntervaloDeCarga)
