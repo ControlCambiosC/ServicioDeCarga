@@ -144,4 +144,13 @@
         Next
         Return MyListConverted
     End Function
+    Function AreNumberOnList(ByVal MyNumber As Integer, ByVal OnList As List(Of Integer))
+        For Each MyInt As Integer In OnList
+            If MyInt = MyNumber Then
+                Return 1
+                Exit Function
+            End If
+        Next
+        Return 0
+    End Function
 End Module

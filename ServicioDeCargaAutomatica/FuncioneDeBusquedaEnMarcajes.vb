@@ -14,6 +14,8 @@ Module FuncioneDeBusquedaEnMarcajes
     End Class
 
     Public DatosDeMarcaje As DatosDeMarcajeClase = New DatosDeMarcajeClase()
+    Dim MyYears As List(Of Integer) = New List(Of Integer)
+    Dim MyData As List(Of Integer) = New List(Of Integer)
 
     ''' <summary>
     ''' Permite consultar un párametro de la clase  UsuarioMarcaje
@@ -86,8 +88,8 @@ Module FuncioneDeBusquedaEnMarcajes
     ''' <param name="LMarcaje"></param>
     ''' <returns></returns>
     Function Marcaje2ListOnlyDateTime(ByRef LMarcaje As UsuarioMarcaje)
-        Dim MyData As List(Of Integer) = New List(Of Integer)
         Try
+            MyData.Clear()
             For Index = 1 To 6
                 MyData.Add(Convert.ToInt16(ConsultaUnParametroDeLM(LMarcaje, Index)))
             Next
@@ -130,46 +132,53 @@ Module FuncioneDeBusquedaEnMarcajes
     ''' <returns></returns>
     Function Marcaje2DataBase(ByRef LMarcaje As UsuarioMarcaje, ByVal Columnas As List(Of String), ByRef MySqlCon As AdmSQL, ByVal MyClv As String, ByVal MyIp As String)
         Dim ListOfData As List(Of String) = Marcaje2FormatSqlInList(LMarcaje)
-        Const MyTable As String = "RegReloj"
+        Dim MyTable As String = "Reloj"
         If ListOfData.Count > 0 Then
             ListOfData.Add(MyClv)
             ListOfData.Add(MyIp)
             ListOfData(0) = MyClv + " | " + ListOfData(0)
-            Dim Igualdades As List(Of String) = MySqlCon.RetornaIgualdades(Columnas, ListOfData)
-            If Igualdades.Count > 0 Then
-                Dim Consulta As String = MySqlCon.ArmaConSql(MyTable, Columnas, Igualdades)
-                'Dim MyType As Integer
-                If Not MySqlCon.ExisteLaconsulta(Consulta, Columnas(0), DbType.String) Then
-                    Dim Condiciones As List(Of String) = New List(Of String) From {
-                        Columnas(1) + " = '" + ListOfData(1) + "'",
-                        Columnas(2) + " = '" + ListOfData(2) + "'"
-                    }
-                    Dim VerificacionDeExistencia = "( " + Condiciones(0) + " and " + Condiciones(1) + " )"
-                    Consulta = MySqlCon.ArmaConSql("RegReloj", VerificacionDeExistencia)
-                    'Dim Strin As String = ""
-                    Dim ResultadoConsulta As Integer = MySqlCon.ExisteLaconsulta(Consulta, Columnas(1), DbType.String)
-                    If ResultadoConsulta = 0 Then
-                        If MySqlCon.InsertaEnSql(MyTable, MySqlCon.InsertComillas(ListOfData)) = 1 Then
-                            Return 0
-                        ElseIf ResultadoConsulta = 1 Then 'No se añadio a la base de datos
-                            Return 1
-                        Else    'Error interno del programa de inserción
-                            Return -1
+            If CreateTableOfYear(MyData(0), MySqlCon) = 1 Then
+                MyTable = MyTable + MyData(0)
+                '################################______________Inicia la sección original______#######
+                Dim Igualdades As List(Of String) = MySqlCon.RetornaIgualdades(Columnas, ListOfData)
+                If Igualdades.Count > 0 Then
+                    Dim Consulta As String = MySqlCon.ArmaConSql(MyTable, Columnas, Igualdades)
+                    'Dim MyType As Integer
+                    If Not MySqlCon.ExisteLaconsulta(Consulta, Columnas(0), DbType.String) Then
+                        Dim Condiciones As List(Of String) = New List(Of String) From {
+                            Columnas(1) + " = '" + ListOfData(1) + "'",
+                            Columnas(2) + " = '" + ListOfData(2) + "'"
+                        }
+                        Dim VerificacionDeExistencia = "( " + Condiciones(0) + " and " + Condiciones(1) + " )"
+                        Consulta = MySqlCon.ArmaConSql(MyTable, VerificacionDeExistencia)
+                        'Dim Strin As String = ""
+                        Dim ResultadoConsulta As Integer = MySqlCon.ExisteLaconsulta(Consulta, Columnas(1), DbType.String)
+                        If ResultadoConsulta = 0 Then
+                            If MySqlCon.InsertaEnSql(MyTable, MySqlCon.InsertComillas(ListOfData)) = 1 Then
+                                Return 0
+                            ElseIf ResultadoConsulta = 1 Then 'No se añadio a la base de datos
+                                Return 1
+                            Else    'Error interno del programa de inserción
+                                Return -1
+                            End If
+                        Else    'Ya existia ese registro
+                            Return 2
                         End If
                     Else    'Ya existia ese registro
-                        Return 2
+                        Return 3
                     End If
-                Else    'Ya existia ese registro
-                    Return 3
+                Else    'Las listas no fueron bien computadas
+                    Return 4
                 End If
-            Else    'Las listas no fueron bien computadas
-                Return 4
+                '##############################_________________Hasta aquí termina el plantemiento original__
+
             End If
+
         Else
-            Return 5
+                Return 5
         End If
     End Function
-    Function CreateTableSQL(ByVal MyYear As Integer)
+    Function CreateTableOfYear(ByVal MyYear As Integer, ByRef MySqlCon As AdmSQL)
         '        use RelojChecador
         'Create table RegReloj (
         '    ClvRegistr  Varchar(46) Primary key ,
@@ -178,7 +187,7 @@ Module FuncioneDeBusquedaEnMarcajes
         '    ClaveReloj  Varchar(8)
         '    IpDelReloj  Varchar(16)
         ')
-        Dim Concatenado As String = "Asis" + MyYear.ToString()
+        Dim Concatenado As String = "Reloj" + MyYear.ToString()
         Dim MyColumsToSet As List(Of String) = New List(Of String) From {
             "ClvRegistr  Varchar(46) Primary key ",
             "ClvUsuario  Int",
@@ -186,7 +195,10 @@ Module FuncioneDeBusquedaEnMarcajes
             "ClaveReloj  Varchar(8)",
             "IpDelReloj  Varchar(16)"
         }
-
+        Dim Respuesta As Integer = MySqlCon.CreaTb(Concatenado, MyColumsToSet)
+        If Respuesta = 1 OrElse Respuesta = -3 Then
+            Return 1
+        End If
         Return 0
 
     End Function

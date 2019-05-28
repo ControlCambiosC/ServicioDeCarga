@@ -501,11 +501,62 @@ Public Class AdmSQL
 
         Return 0
     End Function
+    ''' <summary>
+    ''' Esta funcion retorna un uno en caso de exito, -3 en caso de que ya exista
+    ''' -2 En caso de que exista una tabla con el número de columnas incompletas
+    ''' -1 En el caso de un error en SQL y no se haya creado
+    ''' </summary>
+    ''' <param name="NombreTb"></param>
+    ''' <param name="Columnas"></param>
+    ''' <returns></returns>
     Function CreaTb(ByVal NombreTb As String, ByVal Columnas As List(Of String))
         'Inicial setting of variables'
-        Dim MyStartStr = "Create table " + NombreTb + " ("
-
-
-        Return 0
+        Dim Existe = IsTableExists(NombreTb, Columnas.Count)
+        If Existe = -1 Then
+            Dim MyStartStr = "Create table " + NombreTb + " ("
+            Dim MaxiIndex As Integer = Columnas.Count - 1
+            For Index As Integer = 0 To MaxiIndex
+                If Index <> MaxiIndex Then
+                    MyStartStr = MyStartStr + Columnas(Index) + ", "
+                Else
+                    MyStartStr = MyStartStr + Columnas(Index) + ") "
+                End If
+            Next
+            Dim MyComand = MyStartStr
+            Using con As New SqlConnection(ConnectionString)
+                con.Open()
+                Dim cmd As New SqlCommand(Comando, con)
+                Dim Respuesta = cmd.ExecuteNonQuery()
+                If Respuesta > 0 Then
+                    Return 1
+                Else
+                    Return 0
+                End If
+                con.Close()
+            End Using
+            Return -1
+        ElseIf Existe = 0 Then
+            Return -2
+        Else
+            Return -3
+        End If
+    End Function
+    ''' <summary>
+    ''' Permite conocer si una tabla en Sql existe de manera contraria, regresa un -1
+    ''' El caso 0 es si no contiene el número esperado de columnas la tabla
+    ''' </summary>
+    ''' <param name="NombreTb"></param>
+    ''' <param name="NumberOfColums"></param>
+    ''' <returns></returns>
+    Function IsTableExists(ByVal NombreTb As String, ByVal NumberOfColums As Integer)
+        Dim BusquedaDeTablaExistente = "Select Column_name From INFORMATION_SCHEMA.COLUMNS Where TABLE_NAME = '" + NombreTb + "'"
+        Dim MyExistence As List(Of String) = SqlReaderDown2List(BusquedaDeTablaExistente)
+        If MyExistence.Count = NumberOfColums Then
+            Return 1
+        ElseIf MyExistence.Count > 0 Then
+            Return 0
+        Else
+            Return -1
+        End If
     End Function
 End Class
