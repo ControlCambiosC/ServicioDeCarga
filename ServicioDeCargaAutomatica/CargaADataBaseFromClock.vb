@@ -21,7 +21,7 @@ Public Class CargaADataBaseFromClock
     'Reloj Checador
     Protected Friend MyClock As ZKSoftware = New ZKSoftware(Modelo.X628C)
     'Error de nivel jerarquico
-    Dim ErrorDeNlvJ As Integer = 0
+    Property ErrorDeNlvJ As Integer = 0
     Dim MyErroresOnTxt As List(Of String) = New List(Of String) From {
         "Se ha realizado la carga de la informacion sin ningún problema",
         "Ha habído algún problema al registrar la información en la base de datos",

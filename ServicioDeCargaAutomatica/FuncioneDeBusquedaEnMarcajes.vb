@@ -169,5 +169,25 @@ Module FuncioneDeBusquedaEnMarcajes
             Return 5
         End If
     End Function
+    Function CreateTableSQL(ByVal MyYear As Integer)
+        '        use RelojChecador
+        'Create table RegReloj (
+        '    ClvRegistr  Varchar(46) Primary key ,
+        '    ClvUsuario  Int,
+        '    FechaIngre	DateTime,
+        '    ClaveReloj  Varchar(8)
+        '    IpDelReloj  Varchar(16)
+        ')
+        Dim Concatenado As String = "Asis" + MyYear.ToString()
+        Dim MyColumsToSet As List(Of String) = New List(Of String) From {
+            "ClvRegistr  Varchar(46) Primary key ",
+            "ClvUsuario  Int",
+            "FechaIngre	DateTime",
+            "ClaveReloj  Varchar(8)",
+            "IpDelReloj  Varchar(16)"
+        }
 
+        Return 0
+
+    End Function
 End Module

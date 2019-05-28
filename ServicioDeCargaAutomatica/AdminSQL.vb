@@ -501,7 +501,10 @@ Public Class AdmSQL
 
         Return 0
     End Function
-    Function CreaTb(ByVal NombreTb As String, ByVal Columnas As List(Of Type))
+    Function CreaTb(ByVal NombreTb As String, ByVal Columnas As List(Of String))
+        'Inicial setting of variables'
+        Dim MyStartStr = "Create table " + NombreTb + " ("
+
 
         Return 0
     End Function

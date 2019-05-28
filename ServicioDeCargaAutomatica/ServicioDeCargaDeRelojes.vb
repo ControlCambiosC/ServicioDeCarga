@@ -136,8 +136,11 @@ Public Class ServicioDeCargaDeRelojes
                 'Aquí entra el proceso de la magia eterna
                 Dim MyCarga As CargaADataBaseFromClock = New CargaADataBaseFromClock(Clv)
                 MyCarga.ProcesoCompleto()
+                If MyCarga.ErrorDeNlvJ = 0 Then
+
+                End If
             Next
-            Informe("Se termino la carga de: " + List2Secciones(MyClocksClv))
+            'Informe("Se termino la carga de: " + List2Secciones(MyClocksClv))
         Else
             Informe("No se ha podido obtener la información de los relojes checadores, se intentará en el siguiente intervalo de carga")
         End If

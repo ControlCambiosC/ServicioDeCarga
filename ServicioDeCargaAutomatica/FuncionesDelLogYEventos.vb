@@ -21,10 +21,13 @@ Module FuncionesDelLogYEventos
                 Try
                     Dim MyWriter As StreamWriter = New StreamWriter(RutaDeArchivo)
                     MyWriter.WriteLine("### --- Este es un informe del servicio de segundo plando de la carga de los relojes --- ###")
-                    MyWriter.WriteLine("->Evento sucedido a las:" + vbTab + Date2stringSQL(Now))
+                    MyWriter.WriteLine("->Evento sucedido a las: " + vbTab + Date2stringSQL(Now))
                     MyWriter.WriteLine("-- Reporte ----------------------------------------------------------------------------------")
                     MyWriter.WriteLine(Txt2Inform)
-                    MyWriter.WriteLine("----------------------------------------Servicio creado por Alan Fernando Santacruz Rodríguez")
+                    MyWriter.WriteLine("-Servicio creado para el control de asistencias e incidencias:")
+                    MyWriter.WriteLine(" -> Alan Fernando Santacruz Rodríguez")
+                    MyWriter.WriteLine(" -> Ing. Gustavo Mario Román Solorzano")
+                    MyWriter.WriteLine("CAS Industrial S.A. de C.V. 2019 ")
                     MyWriter.Close()
                 Catch MyErrorEnEscritura As System.Exception
                     InformeDeErrorAlEscribirElLog("No se ha podido realizar la escritura del Log a las " + Date2stringSQL(Now))
