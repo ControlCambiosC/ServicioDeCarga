@@ -522,7 +522,7 @@ Public Class AdmSQL
                     MyStartStr = MyStartStr + Columnas(Index) + ") "
                 End If
             Next
-            Dim MyComand = MyStartStr
+            Dim Comando = MyStartStr
             Using con As New SqlConnection(ConnectionString)
                 con.Open()
                 Dim cmd As New SqlCommand(Comando, con)

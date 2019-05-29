@@ -138,7 +138,7 @@ Module FuncioneDeBusquedaEnMarcajes
             ListOfData.Add(MyIp)
             ListOfData(0) = MyClv + " | " + ListOfData(0)
             If CreateTableOfYear(MyData(0), MySqlCon) = 1 Then
-                MyTable = MyTable + MyData(0)
+                MyTable = MyTable + MyData(0).ToString
                 '################################______________Inicia la sección original______#######
                 Dim Igualdades As List(Of String) = MySqlCon.RetornaIgualdades(Columnas, ListOfData)
                 If Igualdades.Count > 0 Then
